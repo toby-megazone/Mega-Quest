@@ -1,476 +1,234 @@
+---
+goal: Mega-Quest MVP 전체 구현 — 온보딩/로그인 플로우 + 퀘스트 시스템 + 미션 확인 UX
+version: 2.0
+date_created: 2026-03-31
+last_updated: 2026-03-31
+owner: Mega-Quest Team
+status: 'Completed'
+tags: [feature, mvp, onboarding, gamification, mobile]
+---
+
 # Implementation Plan: Mega-Quest MVP (Full)
 
-**Epic:** Mega-Quest MVP — 모바일 기반 온보딩 통합 에이전트  
-**Feature:** 전체 MVP — 메인 대시보드 + 퀘스트 로드맵 + QR 미션 시뮬레이터  
-**Stack:** Next.js (App Router) · Tailwind CSS · Zustand · TypeScript · Mock Data
+![Status: Completed](https://img.shields.io/badge/status-Completed-brightgreen)
+
+Mega-Quest MVP는 신입사원이 모바일 웹앱을 통해 온보딩 퀘스트를 게임처럼 수행할 수 있도록 하는 프론트엔드 전용 애플리케이션이다. 온보딩 소개 → Google 로그인(Mock) → 대시보드 → 퀘스트 수행 → 포인트 적립 → 트리니티 펫 진화의 완결된 데모 플로우를 제공한다. 실제 백엔드 없이 Zustand persist + mock 데이터만으로 구성되며, 해커톤 심사자가 직접 플로우를 체험할 수 있는 수준의 완성도를 달성했다.
 
 ---
 
-## Goal
+## 1. Requirements & Constraints
 
-Mega-Quest MVP는 신입사원이 모바일 웹앱을 통해 온보딩 퀘스트를 게임처럼 수행할 수 있도록 하는 프론트엔드 전용 애플리케이션이다. 실제 백엔드 없이 mock 데이터와 클라이언트 전역 상태만으로 데모를 완성하는 것이 핵심 목표다. 3개의 주요 화면(대시보드, 퀘스트 목록, QR 시뮬레이터)을 구현하고, 포인트 획득과 펫 진화가 실시간으로 반영되는 완결된 데모 플로우를 제공한다. 해커톤 심사자가 직접 플로우를 체험할 수 있는 수준의 완성도를 목표로 한다.
-
----
-
-## Requirements
-
-### 기능 요구사항
-
-**전역 상태 (Zustand Store)**
-- `user`: `{ id, name, type, points, petStage, title }` 초기값 mock 설정
-- `quests`: Quest 배열, mock 데이터로 초기화
-- `completeQuest(questId)`: 해당 퀘스트 상태 → `completed`, 포인트 += `reward_points`, `petStage` 재계산
-- `petStage`는 포인트 기준 자동 계산: 0–9P = 1, 10–14P = 2, 15P+ = 3
-- 퀘스트 상태 변경은 불변 업데이트(immer 또는 spread)로 처리
-
-**메인 대시보드 (`/`)**
-- 트리니티 펫 이미지를 `petStage`에 따라 3종 중 하나 표시
-- 현재 포인트 수치 표시
-- 다음 단계까지 남은 포인트 기반 progress bar (0–100%)
-- '오늘의 일일 퀘스트' 바로가기 버튼 → `/quests?category=daily` 이동
-- 퀘스트 완료 시 펫 진화 피드백(단계 전환 시 클래스 변경 또는 간단한 CSS 트랜지션)
-
-**퀘스트 로드맵 (`/quests`)**
-- URL 쿼리 파라미터 `?category=` 로 기본 탭 제어 가능
-- 3개 카테고리 탭: `hr-beginner` / `role-specific` / `daily-monthly`
-- 각 퀘스트 카드: 제목, 보상 포인트, 상태 배지(`locked` / `available` / `completed`)
-- `available` 상태 퀘스트만 클릭 가능 → `/quests/[id]` 이동
-- `locked` 퀘스트는 클릭 불가 + 시각적 비활성화 처리
-
-**QR 미션 시뮬레이터 (`/quests/[id]`)**
-- 퀘스트 ID에 따라 해당 퀘스트 정보 표시
-- 카메라 뷰 모사 UI (어두운 배경 + 스캔 프레임 박스 + 코너 마커)
-- '스캔하기' 버튼 클릭 시:
-  1. `completeQuest(questId)` 호출
-  2. 2초 로딩 애니메이션 (스캔 중 효과)
-  3. 완료 모달 표시: 퀘스트 제목 + 획득 포인트 + 확인 버튼
-- 완료 모달 확인 → `/` (홈)으로 리다이렉트
-- 이미 `completed` 상태인 퀘스트 접근 시 완료 상태 UI 표시 + 홈 버튼 제공
-
-### 비기능 요구사항
-- 모든 페이지는 375px 기준 모바일 레이아웃 우선
-- 컴포넌트 파일 1개당 단일 책임 원칙 준수
-- TypeScript strict mode 사용
-- 모든 상호작용 요소에 `aria-label` 또는 시맨틱 마크업 적용
+- **REQ-001**: 앱 진입점은 `/onboarding` → `/login` → `/` 순서로 구성한다.
+- **REQ-002**: 메인 대시보드(`/`)는 트리니티 펫(3단계), 포인트 프로그레스 바, 미완료 일일 퀘스트 목록, 일일 퀘스트 바로가기를 표시한다.
+- **REQ-003**: 퀘스트 로드맵(`/quests`)은 3개 카테고리 탭(HR초보자/직군별전직/일일월간)으로 필터링되며, URL 쿼리 파라미터(`?category=`)로 탭 상태를 제어한다.
+- **REQ-004**: `meeting-room-qr` 퀘스트만 QR 스캔 UI를 사용하고, 나머지 퀘스트는 미션 확인 플로우(달성하셨나요? → 로딩 2초 → 확인 1초 → 완료 모달)를 사용한다.
+- **REQ-005**: 모든 퀘스트(9개)는 `available` 상태이며 잠금 없이 도전 가능하다.
+- **REQ-006**: `petStage`는 포인트 기준 자동 계산: 0–9P = 1, 10–14P = 2, 15P+ = 3.
+- **REQ-007**: 전역 상태는 Zustand persist(`localStorage`, `version: 2`)로 새로고침 후에도 유지된다.
+- **REQ-008**: `/onboarding`, `/login` 경로에서 BottomNav를 숨긴다.
+- **CON-001**: 실제 Google OAuth, 세션, 토큰 구현 없음 — 버튼 클릭 시 즉시 `/` 이동.
+- **CON-002**: 실제 백엔드/DB 없음 — 모든 데이터는 `lib/mockData.ts` mock 데이터.
+- **CON-003**: 실제 QR 카메라 스캔 없음 — 버튼 클릭으로 시뮬레이션.
+- **GUD-001**: 모든 UI는 375px(모바일) 기준 레이아웃 우선.
+- **GUD-002**: Primary: `blue-600`, Success: `green-500`, Disabled: `gray-300/400`, BG: `gray-50`.
+- **PAT-001**: `useSearchParams` 사용 컴포넌트는 반드시 `<Suspense>`로 래핑.
+- **PAT-002**: `use client`는 상태/이벤트가 필요한 컴포넌트에만 적용.
+- **PAT-003**: Zustand store 변경 시 `version` 값을 올려 localStorage 자동 초기화.
 
 ---
 
-## Technical Considerations
+## 2. Implementation Steps
 
-### System Architecture Overview
+### Implementation Phase 1 — Foundation
 
-```mermaid
-graph TB
-    subgraph "Frontend Layer (Next.js App Router)"
-        A["/page.tsx<br/>메인 대시보드"] 
-        B["/quests/page.tsx<br/>퀘스트 목록"]
-        C["/quests/[id]/page.tsx<br/>QR 시뮬레이터"]
-        
-        subgraph "UI Components"
-            D[PetAvatar]
-            E[PointsProgressBar]
-            F[QuestCard]
-            G[CategoryTabs]
-            H[QRScannerUI]
-            I[CompletionModal]
-        end
-    end
+- GOAL-001: Next.js 프로젝트 초기화 + 타입 정의 + mock 데이터 + 유틸 함수 + Zustand store 구축
 
-    subgraph "State Layer (Zustand)"
-        J[useGameStore<br/>user · quests · completeQuest]
-        K[Mock Data<br/>initialUser · initialQuests]
-    end
+| Task | Description | Completed | Date |
+|------|-------------|-----------|------|
+| TASK-001 | `package.json` 수동 작성. dependencies: `next@14.2.29`, `react@^18`, `zustand@^5`, `lucide-react@^0.469`. devDependencies: TypeScript, Tailwind, ESLint. | ✅ | 2026-03-31 |
+| TASK-002 | `tsconfig.json` 작성. strict: true, paths: `@/*` → `./*`. | ✅ | 2026-03-31 |
+| TASK-003 | `tailwind.config.ts` 작성. content: app/**, components/**, pages/**. | ✅ | 2026-03-31 |
+| TASK-004 | `postcss.config.js` 작성 (CommonJS — `.mjs` 사용 불가). plugins: tailwindcss, autoprefixer. | ✅ | 2026-03-31 |
+| TASK-005 | `next.config.mjs` 작성 (`.ts` 사용 불가 — Next.js 14 제한). | ✅ | 2026-03-31 |
+| TASK-006 | `lib/types.ts` 작성. `User`, `Quest`, `QuestStatus`, `QuestCategory`, `PetStageConfig` 인터페이스 정의. | ✅ | 2026-03-31 |
+| TASK-007 | `lib/mockData.ts` 작성. `initialUser`(김신입), `initialQuests`(9개 전원 available), `petStageConfig`(0–9/10–14/15+). | ✅ | 2026-03-31 |
+| TASK-008 | `lib/utils.ts` 작성. `getPetStage(points)`, `getProgressPercent(points, stage)`, `getNextStagePoints(stage)` 구현. | ✅ | 2026-03-31 |
+| TASK-009 | `store/gameStore.ts` 작성. Zustand + persist middleware. `user`, `quests`, `completeQuest()`, `resetGame()`. `version: 2`. | ✅ | 2026-03-31 |
+| TASK-010 | `npm install` 실행. | ✅ | 2026-03-31 |
 
-    subgraph "Routing"
-        L[Next.js App Router<br/>Layout + Navigation]
-        M[Bottom Nav Bar<br/>Home / Quests]
-    end
+### Implementation Phase 2 — Shared UI Components
 
-    A -->|reads petStage, points| J
-    B -->|reads quests, filters| J
-    C -->|calls completeQuest| J
-    J -->|initialized from| K
-    A --> D
-    A --> E
-    B --> F
-    B --> G
-    C --> H
-    C --> I
-    L --> A
-    L --> B
-    L --> C
-    M --> L
-```
+- GOAL-002: 재사용 가능한 공통 UI 컴포넌트 + 루트 레이아웃 구축
 
-### Technology Stack Selection
+| Task | Description | Completed | Date |
+|------|-------------|-----------|------|
+| TASK-011 | `app/globals.css` 작성. `@tailwind base/components/utilities`. | ✅ | 2026-03-31 |
+| TASK-012 | `components/ui/Badge.tsx`. props: `{ status: QuestStatus }`. locked=gray-200, available=blue-100, completed=green-100. | ✅ | 2026-03-31 |
+| TASK-013 | `components/ui/ProgressBar.tsx`. props: `{ percent: number }`. Tailwind div 기반, `role="progressbar"`. | ✅ | 2026-03-31 |
+| TASK-014 | `components/ui/Modal.tsx`. `'use client'`. backdrop-blur + 중앙 카드. `body.overflow` 제어. | ✅ | 2026-03-31 |
+| TASK-015 | `components/ui/BottomNav.tsx`. `'use client'`. `usePathname` 활성 탭. `fixed bottom-0`. iOS safe-area `env(safe-area-inset-bottom)`. | ✅ | 2026-03-31 |
+| TASK-016 | `components/ui/NavWrapper.tsx`. `'use client'`. `usePathname`으로 `/onboarding`, `/login`에서 BottomNav 숨김. `children` 래핑 + `main.max-w-md.pb-20` 조건부 적용. | ✅ | 2026-03-31 |
+| TASK-017 | `app/layout.tsx`. Server Component 유지. `NavWrapper`로 children 감쌈. `Metadata`, `Viewport` export. | ✅ | 2026-03-31 |
 
-| Layer | 선택 | 이유 |
-|---|---|---|
-| Framework | Next.js 14 (App Router) | 파일 기반 라우팅으로 `/quests/[id]` 동적 경로 처리 용이, SSR 불필요하나 React Server Components 구조 활용 |
-| Styling | Tailwind CSS | 유틸리티 클래스로 모바일 반응형 빠르게 구현, 커스텀 디자인 토큰 불필요 |
-| State | Zustand | 보일러플레이트 최소화, Context 대비 리렌더링 최적화, devtools 지원 |
-| Language | TypeScript (strict) | 데이터 모델 타입 안전성, IDE 자동완성으로 개발 속도 향상 |
-| 아이콘 | lucide-react | shadcn/ui와 동일 생태계, tree-shakeable |
-| 디자인 | Tailwind blue 계열 | Primary: `blue-500/600`, Success: `green-500`, Disabled: `gray-300/400`, BG: `gray-50` |
-| 배포 | 로컬 (`npm run dev`) | 데모 영상 시연 전용 — Vercel 배포 불필요 |
+### Implementation Phase 3 — Onboarding & Login Flow
 
-### Data Model
+- GOAL-003: 앱 진입 플로우 구현 (온보딩 → 로그인 → 홈)
 
-```mermaid
-erDiagram
-    USER {
-        string id PK
-        string name
-        string type
-        number points
-        number petStage
-        string title
-    }
+| Task | Description | Completed | Date |
+|------|-------------|-----------|------|
+| TASK-018 | `app/onboarding/page.tsx`. `'use client'`. 블루 그라데이션 배경. 🚀 타이틀 + 3개 기능 카드(Sword/Star/Trophy 아이콘) + "시작하기 →" 버튼 → `router.push('/login')`. | ✅ | 2026-03-31 |
+| TASK-019 | `components/icons/GoogleIcon.tsx`. Google 4색 SVG (파랑/초록/노랑/빨강 공식 path). props: `{ size?: number }`. | ✅ | 2026-03-31 |
+| TASK-020 | `app/login/page.tsx`. `'use client'`. 흰색 카드 + Google 버튼 → `router.push('/')`. 실제 OAuth 없음. | ✅ | 2026-03-31 |
 
-    QUEST {
-        string id PK
-        string category
-        string title
-        number rewardPoints
-        string status
-    }
+### Implementation Phase 4 — Home Dashboard
 
-    PET_STAGE_CONFIG {
-        number stage PK
-        number minPoints
-        number maxPoints
-        string imageSrc
-        string label
-    }
+- GOAL-004: 메인 대시보드 구현 (트리니티 펫 + 포인트 + 미완료 일일 퀘스트 목록)
 
-    USER ||--o{ QUEST : "completes"
-    USER }|--|| PET_STAGE_CONFIG : "has stage"
-```
+| Task | Description | Completed | Date |
+|------|-------------|-----------|------|
+| TASK-021 | `components/PetAvatar.tsx`. props: `{ stage: 1\|2\|3 }`. `next/image` + 이모지 폴백(🥚🐣✨). CSS transition. | ✅ | 2026-03-31 |
+| TASK-022 | `components/PointsProgressBar.tsx`. props: `{ currentPoints, currentStage }`. `getProgressPercent` 사용. 다음 단계까지 남은 포인트 표시. | ✅ | 2026-03-31 |
+| TASK-023 | `components/DailyQuestShortcut.tsx`. `<Link href="/quests?category=daily-monthly">`. 파란 배경 버튼. | ✅ | 2026-03-31 |
+| TASK-024 | `app/page.tsx`. `'use client'`. `useGameStore`로 `user`, `quests` 조회. `daily-monthly` & `status !== completed` 필터링하여 미완료 목록 표시. 모두 완료 시 "🎉" 메시지. | ✅ | 2026-03-31 |
 
-**Mock Data 상세:**
+### Implementation Phase 5 — Quest Roadmap
 
-```
-// initialUser
-{ id: 'user-1', name: '김신입', type: '공채', points: 0, petStage: 1, title: '' }
+- GOAL-005: 퀘스트 목록 페이지 구현 (카테고리 탭 + 퀘스트 카드)
 
-// petStageConfig (상수)
-Stage 1: 0–9P  → '알 (Egg)'
-Stage 2: 10–14P → '아기 트리니티'
-Stage 3: 15P+  → '메가 트리니티'
-// available 퀘스트 총합: 17P → Stage 3 도달 가능 ✓
+| Task | Description | Completed | Date |
+|------|-------------|-----------|------|
+| TASK-025 | `components/CategoryTabs.tsx`. `'use client'`. `useSearchParams` + `useRouter`. 3개 탭. **반드시 `<Suspense>` 내부에서 사용**. | ✅ | 2026-03-31 |
+| TASK-026 | `components/QuestCard.tsx`. props: `{ quest, onClick? }`. 상태별 아이콘/배지/색상. `locked` → `pointer-events-none opacity-50`. | ✅ | 2026-03-31 |
+| TASK-027 | `app/quests/page.tsx`. `'use client'`. `<Suspense>` 래핑 필수. `useSearchParams`로 초기 카테고리 결정. `available` 퀘스트 클릭 → `/quests/[id]`. | ✅ | 2026-03-31 |
 
-// initialQuests (9개)
-- meeting-room-qr  : available, category: daily-monthly, 5P
-- hr-policy        : available, category: hr-beginner, 3P
-- office-tour      : available, category: hr-beginner, 3P
-- profile-setup    : available, category: hr-beginner, 2P
-- slack-jira       : locked,    category: role-specific, 5P
-- msp-training     : locked,    category: role-specific, 5P
-- ctu-intro        : locked,    category: role-specific, 3P
-- email-check      : available, category: daily-monthly, 2P
-- e-approval       : available, category: daily-monthly, 2P
-```
+### Implementation Phase 6 — Quest Mission Simulator
 
-### Frontend Architecture
+- GOAL-006: 퀘스트 미션 수행 화면 구현 (QR / 미션 확인 분기)
 
-#### Component Hierarchy
+| Task | Description | Completed | Date |
+|------|-------------|-----------|------|
+| TASK-028 | `components/QRScannerUI.tsx`. props: `{ isScanning, onScan }`. `bg-black` 전체 화면. 코너 마커 CSS. 스캔 라인 `animate-bounce`. | ✅ | 2026-03-31 |
+| TASK-029 | `components/MissionConfirmUI.tsx`. `'use client'`. props: `{ quest, isLoading, isConfirmed, onConfirm }`. 기본→로딩(Loader2 animate-spin)→확인됨(CheckCircle2) 3단계 상태 렌더링. | ✅ | 2026-03-31 |
+| TASK-030 | `components/CompletionModal.tsx`. `Modal` 래핑. ✅ 아이콘 + 퀘스트 제목 + "+NP 획득" + 확인 버튼. | ✅ | 2026-03-31 |
+| TASK-031 | `app/quests/[id]/page.tsx`. `'use client'`. `quest.id === 'meeting-room-qr'` 분기. QR: 2초 스캔 → 완료 모달. 일반: `handleMissionConfirm` (로딩 2초 → 확인 1초 → 완료 모달). `useRef` cleanup. | ✅ | 2026-03-31 |
 
-```
-app/
-├── layout.tsx                    ← 전체 레이아웃 + BottomNav
-├── page.tsx                      ← 메인 대시보드 (Home)
-│   ├── PetAvatar                 ← petStage 기반 이미지/애니메이션
-│   ├── PointsProgressBar         ← 현재 포인트 + 다음 단계까지 progress
-│   └── DailyQuestShortcut        ← '/quests?category=daily-monthly' 링크 버튼
-│
-├── quests/
-│   └── page.tsx                  ← 퀘스트 로드맵
-│       ├── CategoryTabs          ← 탭 UI (URL 쿼리 파라미터 연동)
-│       └── QuestList
-│           └── QuestCard[]       ← 개별 퀘스트 카드 (상태 배지 포함)
-│
-├── quests/[id]/
-│   └── page.tsx                  ← QR 미션 시뮬레이터
-│       ├── QuestHeader           ← 퀘스트 제목/정보
-│       ├── QRScannerUI           ← 카메라 모사 프레임 + 스캔하기 버튼
-│       ├── ScanLoadingOverlay    ← 스캔 중 애니메이션 (2초)
-│       └── CompletionModal       ← 완료 팝업 + 획득 포인트 + 홈 이동 버튼
-│
-components/
-├── ui/
-│   ├── Badge.tsx                 ← 퀘스트 상태 배지 (locked/available/completed)
-│   ├── ProgressBar.tsx           ← 재사용 가능한 progress bar
-│   ├── Modal.tsx                 ← 범용 모달 래퍼
-│   └── BottomNav.tsx             ← 하단 네비게이션 (Home / Quests)
-│
-store/
-└── gameStore.ts                  ← Zustand store (전역 상태 + 액션)
+### Implementation Phase 7 — Verification & Bug Fixes
 
-lib/
-├── mockData.ts                   ← initialUser, initialQuests, petStageConfig
-└── utils.ts                      ← getPetStage(points), getProgressPercent(points) 등
-```
+- GOAL-007: 빌드 오류 수정 + 전체 플로우 검증
 
-#### State Flow
-
-```mermaid
-stateDiagram-v2
-    [*] --> Initialized: 앱 로드 (mock data)
-    
-    Initialized --> QuestAvailable: 퀘스트 목록 렌더링
-    QuestAvailable --> Scanning: '스캔하기' 클릭
-    Scanning --> QuestCompleted: 2초 후 completeQuest() 호출
-    
-    QuestCompleted --> PointsUpdated: store.user.points += rewardPoints
-    PointsUpdated --> PetStageCheck: getPetStage(newPoints)
-    PetStageCheck --> PetEvolved: newStage > oldStage
-    PetStageCheck --> PetUnchanged: newStage === oldStage
-    
-    PetEvolved --> ModalShown: CompletionModal 표시
-    PetUnchanged --> ModalShown: CompletionModal 표시
-    ModalShown --> [*]: 확인 클릭 → 홈 리다이렉트
-```
-
-#### TypeScript Interfaces
-
-```typescript
-// store/gameStore.ts 에서 사용할 타입
-
-interface User {
-  id: string;
-  name: string;
-  type: string;
-  points: number;
-  petStage: 1 | 2 | 3;
-  title: string;
-}
-
-type QuestStatus = 'locked' | 'available' | 'completed';
-type QuestCategory = 'hr-beginner' | 'role-specific' | 'daily-monthly';
-
-interface Quest {
-  id: string;
-  category: QuestCategory;
-  title: string;
-  description: string;
-  rewardPoints: number;
-  status: QuestStatus;
-}
-
-interface PetStageConfig {
-  stage: 1 | 2 | 3;
-  minPoints: number;
-  maxPoints: number | null; // null = 상한 없음
-  label: string;
-  imageSrc: string; // /public/pets/stage-{1|2|3}.png
-}
-
-interface GameStore {
-  user: User;
-  quests: Quest[];
-  completeQuest: (questId: string) => void;
-}
-```
-
-#### UI 컴포넌트 상세 명세
-
-**PetAvatar**
-- props: `{ stage: 1 | 2 | 3, animated?: boolean }`
-- `stage` 변경 시 CSS transition (`scale`, `opacity`) 적용
-- 이미지 경로: `/public/pets/stage-1.png`, `stage-2.png`, `stage-3.png`
-- 이미지 없을 경우 이모지 폴백: 🥚 → 🐣 → ✨
-
-**PointsProgressBar**
-- props: `{ currentPoints: number, currentStage: 1 | 2 | 3 }`
-- 단계별 목표 포인트 기준으로 퍼센트 계산
-- `<progress>` 또는 Tailwind div 기반 구현
-- 레이블: "현재 {N}P / 다음 단계까지 {M}P"
-
-**QuestCard**
-- props: `{ quest: Quest, onClick?: () => void }`
-- 상태별 배지 색상: locked = `gray-300`, available = `blue-500`, completed = `green-500`
-- locked 상태: `pointer-events-none opacity-50`
-- 카드 내 정보: 제목, 카테고리 뱃지, 보상 포인트, 상태 아이콘
-
-**QRScannerUI**
-- 배경: `bg-black` 전체 화면
-- 스캔 프레임: 흰색 코너 마커 4개 (CSS 테두리 트릭)
-- 스캔 라인 애니메이션: Tailwind `animate-bounce` 또는 커스텀 keyframe
-- '스캔하기' 버튼: 화면 하단 고정, 클릭 시 `isScanning` 상태 전환
-
-**CompletionModal**
-- props: `{ quest: Quest, onConfirm: () => void }`
-- backdrop blur + 중앙 카드 레이아웃
-- 내용: 체크 아이콘 ✅ + "미션 완료!" + 퀘스트 제목 + "+{N}P 획득" + '확인' 버튼
-
-**BottomNav**
-- 고정 하단 (`fixed bottom-0`), 두 탭: 🏠 홈 / 📋 퀘스트
-- 현재 경로 기반 활성 탭 하이라이트 (`usePathname`)
-- `safe-area-inset-bottom` 패딩 적용 (iOS 홈바 대응)
+| Task | Description | Completed | Date |
+|------|-------------|-----------|------|
+| TASK-032 | `next.config.ts` → `next.config.mjs`로 교체 (Next.js 14는 `.ts` config 미지원). | ✅ | 2026-03-31 |
+| TASK-033 | `postcss.config.mjs` → `postcss.config.js`로 교체 (`.mjs`에서 `module.exports` 사용 불가). | ✅ | 2026-03-31 |
+| TASK-034 | `locked` 퀘스트 3개(`slack-jira`, `msp-training`, `ctu-intro`) → `available`로 변경. | ✅ | 2026-03-31 |
+| TASK-035 | `gameStore.ts` `version: 2` 추가 — mockData 변경 시 localStorage 자동 초기화. | ✅ | 2026-03-31 |
+| TASK-036 | `npm run build` 최종 검증. 7개 라우트 정상 빌드 확인. | ✅ | 2026-03-31 |
 
 ---
 
-## File System
+## 3. Alternatives
 
-```
-apps/
-  mega-quest/                     ← Next.js 프로젝트 루트
-    app/
-      layout.tsx
-      page.tsx
-      quests/
-        page.tsx
-        [id]/
-          page.tsx
-    components/
-      ui/
-        Badge.tsx
-        ProgressBar.tsx
-        Modal.tsx
-        BottomNav.tsx
-      PetAvatar.tsx
-      PointsProgressBar.tsx
-      QuestCard.tsx
-      CategoryTabs.tsx
-      QRScannerUI.tsx
-      CompletionModal.tsx
-      DailyQuestShortcut.tsx
-    store/
-      gameStore.ts
-    lib/
-      mockData.ts
-      utils.ts
-    public/
-      pets/
-        stage-1.png   (또는 SVG)
-        stage-2.png
-        stage-3.png
-    tailwind.config.ts
-    next.config.ts
-    tsconfig.json
-    package.json
-```
+- **ALT-001**: `create-next-app` CLI 스캐폴딩 — 폴더명 "Mega-Quest"에 대문자 포함으로 npm 제한에 걸림 → 수동 파일 작성으로 대체.
+- **ALT-002**: `next.config.ts` — Next.js 14에서 미지원 → `next.config.mjs`로 교체.
+- **ALT-003**: `postcss.config.mjs` — ES Module scope에서 `module.exports` 사용 불가 → `postcss.config.js`(CommonJS)로 교체.
+- **ALT-004**: `layout.tsx`에서 직접 `usePathname` — Server Component 제약으로 불가 → `NavWrapper` Client Component 분리.
+- **ALT-005**: `zustand-persist`를 선택 사항으로 처리 — 데모 중 새로고침 리셋 방지를 위해 기본 적용으로 격상.
+- **ALT-006**: `locked` 퀘스트 유지 — 데모에서 모든 퀘스트 체험 가능하도록 전체 `available`로 변경.
+- **ALT-007**: 온보딩 최초 1회만 표시 (localStorage skip) — 데모 매 실행 시 플로우 재현이 필요하므로 항상 표시 방식 채택.
 
 ---
 
-## Implementation Phases
+## 4. Dependencies
 
-### Phase 1 — 프로젝트 초기화 및 기반 구조 (Foundation)
-
-**목표:** Next.js 프로젝트 셋업 + Zustand 스토어 + mock 데이터 + 공통 유틸리티
-
-**작업 목록:**
-1. `npx create-next-app@latest mega-quest --typescript --tailwind --app` 실행
-2. `zustand`, `lucide-react` 설치
-3. **`zustand/middleware`의 `persist` 미들웨어 적용** — `gameStore`에 `localStorage` 기반 persist 설정
-4. `lib/mockData.ts` 작성: `initialUser`, `initialQuests`, `petStageConfig` 정의
-5. `lib/utils.ts` 작성: `getPetStage(points)`, `getProgressPercent(points, stage)` 구현
-6. `store/gameStore.ts` 작성: Zustand store 구현 (`user`, `quests`, `completeQuest`) + persist 래핑
-7. TypeScript strict mode 확인 (`tsconfig.json`)
-
-**완료 기준:** `npm run dev` 정상 실행, 스토어 devtools에서 초기 상태 확인 가능, 새로고침 후 상태 유지 확인
+- **DEP-001**: `next@14.2.29` — App Router, Server/Client Component, `next/image`, `next/font`.
+- **DEP-002**: `react@^18`, `react-dom@^18` — 기본 프레임워크.
+- **DEP-003**: `zustand@^5` + `zustand/middleware(persist)` — 전역 상태 + localStorage 유지.
+- **DEP-004**: `lucide-react@^0.469` — 아이콘 (Home, ListChecks, Sword, Star, Trophy, Zap, ChevronRight, Lock, Loader2, CheckCircle2, ArrowLeft).
+- **DEP-005**: `tailwindcss@^3.4.1` + `postcss` + `autoprefixer` — 스타일링.
+- **DEP-006**: `typescript@^5` + `@types/react`, `@types/node` — 타입 안전성.
 
 ---
 
-### Phase 2 — 공통 UI 컴포넌트 (Shared Components)
+## 5. Files
 
-**목표:** 재사용 가능한 UI 컴포넌트 구현
+**App Routes:**
+- **FILE-001**: `app/layout.tsx` — Server Component 루트 레이아웃. `NavWrapper` 포함.
+- **FILE-002**: `app/globals.css` — Tailwind 기본 import.
+- **FILE-003**: `app/onboarding/page.tsx` — 온보딩 소개 화면. 진입점.
+- **FILE-004**: `app/login/page.tsx` — Google 로그인 UI (Mock).
+- **FILE-005**: `app/page.tsx` — 메인 대시보드. 미완료 일일 퀘스트 목록 포함.
+- **FILE-006**: `app/quests/page.tsx` — 퀘스트 로드맵. Suspense 래핑.
+- **FILE-007**: `app/quests/[id]/page.tsx` — 퀘스트 미션 수행. QR/일반 분기.
 
-**작업 목록:**
-1. `components/ui/Badge.tsx` — 상태별 색상 배지
-2. `components/ui/ProgressBar.tsx` — 퍼센트 기반 progress bar
-3. `components/ui/Modal.tsx` — backdrop + 중앙 카드 모달 래퍼
-4. `components/ui/BottomNav.tsx` — 하단 고정 탭 네비게이션 (`usePathname` 연동)
-5. `app/layout.tsx` — 루트 레이아웃 + BottomNav 포함 + 모바일 viewport meta 설정
+**Components:**
+- **FILE-008**: `components/ui/NavWrapper.tsx` — BottomNav 조건부 렌더 + main 레이아웃 래퍼.
+- **FILE-009**: `components/ui/BottomNav.tsx` — 하단 고정 탭 네비게이션.
+- **FILE-010**: `components/ui/Badge.tsx` — 퀘스트 상태 배지.
+- **FILE-011**: `components/ui/ProgressBar.tsx` — 퍼센트 기반 프로그레스 바.
+- **FILE-012**: `components/ui/Modal.tsx` — 공통 모달 래퍼.
+- **FILE-013**: `components/icons/GoogleIcon.tsx` — Google 4색 SVG.
+- **FILE-014**: `components/PetAvatar.tsx` — 트리니티 펫 시각화 (3단계 + 이모지 폴백).
+- **FILE-015**: `components/PointsProgressBar.tsx` — 포인트 + 진화 진행도.
+- **FILE-016**: `components/DailyQuestShortcut.tsx` — 일일 퀘스트 바로가기 버튼.
+- **FILE-017**: `components/CategoryTabs.tsx` — 카테고리 탭 (URL 쿼리 연동).
+- **FILE-018**: `components/QuestCard.tsx` — 퀘스트 목록 카드.
+- **FILE-019**: `components/QRScannerUI.tsx` — QR 카메라 프레임 시뮬레이터.
+- **FILE-020**: `components/MissionConfirmUI.tsx` — 미션 확인 플로우 UI.
+- **FILE-021**: `components/CompletionModal.tsx` — 퀘스트 완료 팝업.
 
-**완료 기준:** Storybook 없이 `/` 접속 시 BottomNav 하단 고정 확인, 탭 전환 시 경로 이동 확인
+**State & Data:**
+- **FILE-022**: `store/gameStore.ts` — Zustand store + persist. `user`, `quests`, `completeQuest`, `resetGame`.
+- **FILE-023**: `lib/types.ts` — 공통 TypeScript 인터페이스.
+- **FILE-024**: `lib/mockData.ts` — 초기 데이터 (user, quests 9개 all available, petStageConfig).
+- **FILE-025**: `lib/utils.ts` — `getPetStage`, `getProgressPercent`, `getNextStagePoints`.
 
----
-
-### Phase 3 — 메인 대시보드 (Home)
-
-**목표:** 트리니티 펫 + 포인트 프로그레스 바 + 일일 퀘스트 바로가기 구현
-
-**작업 목록:**
-1. `components/PetAvatar.tsx` — stage 기반 이미지 교체 + CSS 트랜지션
-2. `components/PointsProgressBar.tsx` — 현재 포인트 → 다음 단계 퍼센트 계산 및 표시
-3. `components/DailyQuestShortcut.tsx` — `/quests?category=daily-monthly` 링크 버튼
-4. `app/page.tsx` — 위 3개 컴포넌트 조합, `useGameStore` 연동
-5. 펫 이미지 에셋 배치 (`/public/pets/`) 또는 이모지 폴백 처리
-
-**완료 기준:** 홈 화면에서 펫 이미지, 포인트(0P), progress bar(0%), 일일 퀘스트 버튼 확인
-
----
-
-### Phase 4 — 퀘스트 로드맵 (Quest List)
-
-**목표:** 카테고리 탭 필터링 + 퀘스트 목록 + 상태 배지 구현
-
-**작업 목록:**
-1. `components/CategoryTabs.tsx` — 3개 탭, `searchParams` 연동
-   - **`useSearchParams` 사용 시 반드시 `<Suspense>`로 래핑 필요** (Next.js 14 App Router 요구사항)
-   - `app/quests/page.tsx`에서 `<Suspense fallback={<TabsSkeleton />}><CategoryTabs /></Suspense>` 구조 적용
-2. `components/QuestCard.tsx` — 퀘스트 정보 카드 (상태별 스타일 분기)
-3. `app/quests/page.tsx` — 카테고리 필터링 로직, 퀘스트 목록 렌더링
-   - `useSearchParams`로 초기 탭 결정 (`?category=daily-monthly` 등)
-   - `available` 퀘스트 클릭 → `/quests/[id]` 이동
-   - `locked` 퀘스트 클릭 불가 처리
-
-**완료 기준:** 3개 탭 전환 시 목록 필터링, 상태별 배지 색상 구분, 홈에서 '오늘의 일일 퀘스트' 클릭 시 daily 탭 자동 선택
+**Config:**
+- **FILE-026**: `next.config.mjs` — Next.js 설정.
+- **FILE-027**: `postcss.config.js` — PostCSS/Tailwind 설정 (CommonJS 필수).
+- **FILE-028**: `tailwind.config.ts` — Tailwind content 경로 설정.
+- **FILE-029**: `tsconfig.json` — TypeScript strict mode + path alias.
 
 ---
 
-### Phase 5 — QR 미션 시뮬레이터 (QR Simulator)
+## 6. Testing
 
-**목표:** QR 스캔 화면 + 완료 로직 + 모달 + 포인트/펫 업데이트 구현
-
-**작업 목록:**
-1. `components/QRScannerUI.tsx` — 카메라 프레임 모사 UI + '스캔하기' 버튼
-2. `components/CompletionModal.tsx` — 완료 팝업 (포인트 획득 표시 + 홈 이동)
-3. `app/quests/[id]/page.tsx` — 퀘스트 ID로 스토어 조회, 스캔 로직 구현
-   - `isScanning` 상태: false → true (2초 딜레이) → `completeQuest()` 호출 → 모달 표시
-   - 이미 completed 퀘스트 접근 시 완료 상태 UI 분기
-   - 모달 확인 시 `router.push('/')`
-
-**완료 기준:** 스캔 버튼 → 2초 애니메이션 → 모달 표시 → 확인 → 홈 이동 + 포인트 업데이트 + 펫 단계 변경 확인
-
----
-
-### Phase 6 — 통합 테스트 및 데모 플로우 검증
-
-**목표:** 핵심 데모 시나리오 6단계 완주 확인
-
-**작업 목록:**
-1. iPhone 12 기준(390px) 모바일 레이아웃 전체 확인
-2. 핵심 데모 플로우 수동 테스트:
-   - 홈 접속 → 퀘스트 탭 → meeting-room-qr 선택 → 스캔 → +5P → 펫 변화 확인
-3. 25P → 15P 이상 적립 시 펫 3단계 진화 확인 (available 퀘스트 합계 17P로 도달 가능)
-4. 이미 완료된 퀘스트 재접근 시 UI 분기 확인
-5. BottomNav 홈/퀘스트 탭 전환 시 상태 유지 확인
-6. `locked` 퀘스트 클릭 불가 확인
+- **TEST-001**: `npm run build` — 타입 오류 없이 7개 라우트 빌드 성공 ✅
+- **TEST-002**: 온보딩 플로우 — `/onboarding` → "시작하기" → `/login` → Google 버튼 → `/` 이동 ✅
+- **TEST-003**: BottomNav 조건 — `/onboarding`, `/login`에서 미표시, 나머지에서 표시 ✅
+- **TEST-004**: QR 미션 플로우 — `/quests/meeting-room-qr` → QR UI → 스캔 2초 → 완료 모달 → 홈 + 포인트 +5 ✅
+- **TEST-005**: 일반 미션 플로우 — `/quests/hr-policy` → 달성하셨나요? → 확인 → 로딩 2초 → 확인됨 1초 → 완료 모달 → 홈 + 포인트 +3 ✅
+- **TEST-006**: petStage 진화 — 0→9P: Stage 1, 10P: Stage 2, 15P: Stage 3 ✅
+- **TEST-007**: 퀘스트 카테고리 탭 — 3개 탭 전환 시 목록 필터링 정상 동작 ✅
+- **TEST-008**: URL 쿼리 연동 — `/quests?category=daily-monthly` 접근 시 해당 탭 자동 선택 ✅
+- **TEST-009**: Zustand persist — 새로고침 후 포인트 + 퀘스트 상태 유지 ✅
+- **TEST-010**: localStorage 자동 초기화 — `version: 2`로 이전 locked 상태 리셋 ✅
+- **TEST-011**: 전 라우트 200 응답 — `/`, `/quests`, `/quests/[id]`, `/onboarding`, `/login` ✅
 
 ---
 
-## Security & Performance
+## 7. Risks & Assumptions
 
-- **입력 유효성:** 모든 데이터는 mock으로 고정 — 사용자 입력 없음, XSS 위험 없음
-- **인증:** MVP 범위에서 인증 불필요
-- **성능 최적화:**
-  - Next.js `Image` 컴포넌트로 펫 이미지 자동 최적화
-  - Zustand selector로 불필요한 리렌더링 방지 (예: `useGameStore(s => s.user.points)`)
-  - 모달 조건부 렌더링으로 불필요한 DOM 최소화
-- **모바일 성능:**
-  - Tailwind purge로 CSS 번들 최소화
-  - `use client` 지시자는 상태/이벤트 필요한 컴포넌트에만 적용
-  - 폰트: `next/font` 시스템 폰트 또는 Noto Sans KR (subset)
+- **RISK-001**: `next.config.ts` 미지원 — Next.js 14에서 `.mjs`만 허용. → `next.config.mjs`로 해결 ✅
+- **RISK-002**: `postcss.config.mjs` ES Module scope 오류 — `module.exports` 사용 불가. → `.js`(CJS)로 해결 ✅
+- **RISK-003**: `create-next-app` 대문자 폴더명 제한 — "Mega-Quest" 폴더명으로 CLI 실패. → 수동 scaffold로 해결 ✅
+- **RISK-004**: Zustand v5 + persist hydration mismatch — SSR/CSR 불일치 가능. → `version` 필드로 초기화 제어, 현재 데모 환경에서 문제 없음.
+- **RISK-005**: `useSearchParams` + Next.js 14 App Router — `<Suspense>` 미포함 시 빌드 에러. → `app/quests/page.tsx`에 `<Suspense>` 래핑 적용 ✅
+- **RISK-006**: 펫 이미지 에셋 부재 (`/public/pets/` 비어있음) — `next/image`가 404 반환. → `onError` 핸들러로 이모지 폴백 처리.
+- **ASSUMPTION-001**: 데모는 로컬 환경(`npm run dev`, `localhost:3000`)에서만 실행.
+- **ASSUMPTION-002**: 단일 사용자 시나리오 — 인증/다중 사용자 불필요.
+- **ASSUMPTION-003**: 펫 이미지는 추후 디자이너가 `/public/pets/stage-{1,2,3}.png` 경로에 추가 예정. 현재는 이모지로 동작.
 
 ---
 
-## Open Questions
+## 8. Related Specifications / Further Reading
 
-| 질문 | 기본값 / 권장 |
-|---|---|
-| 펫 이미지 에셋이 없을 경우? | 이모지 폴백 사용 (🥚 🐣 ✨) — 추후 교체 |
-| `locked` 퀘스트 해제 조건? | MVP에서는 영구 잠금 (단순 시각적 구분만) |
-| 15P 이상에서 추가 퀘스트 완료 시? | 3단계 유지, 포인트만 누적 |
-| 페이지 새로고침 시 상태 유지? | **zustand-persist (localStorage) 기본 적용** — 데모 중 새로고침 리셋 방지 |
+- [Epic PRD](../epic.md)
+- [온보딩 플로우 Feature PRD](../onboarding-flow/prd.md)
+- [로그인 플로우 Feature PRD](../login-flow/prd.md)
+- [퀘스트 미션 UX Feature PRD](../quest-mission-ux/prd.md)
+- [온보딩+로그인+미션UX 구현 계획 v1](./feature-onboarding-login-quest-ux-1.md)
+- [Next.js App Router 공식 문서](https://nextjs.org/docs/app)
+- [Zustand Persist Middleware](https://docs.pmnd.rs/zustand/integrations/persisting-store-data)
+- [Next.js useSearchParams + Suspense](https://nextjs.org/docs/app/api-reference/functions/use-search-params#with-suspense)
+
+
