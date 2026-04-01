@@ -141,7 +141,7 @@ export const initialQuests: Quest[] = [
     title: '사원증 수령',
     description: '총무팀에서 사원증 및 출입카드를 수령하고 등록하세요.',
     rewardPoints: 2,
-    status: 'locked',
+    status: 'available',
   },
   {
     id: 'day-one-workstation',
@@ -149,7 +149,7 @@ export const initialQuests: Quest[] = [
     title: '장비 세팅',
     description: '배정된 자리에서 노트북, 모니터 등 장비를 수령하고 초기 세팅을 완료하세요.',
     rewardPoints: 3,
-    status: 'locked',
+    status: 'available',
   },
   {
     id: 'day-one-wifi-vpn',
@@ -157,7 +157,7 @@ export const initialQuests: Quest[] = [
     title: 'Wi-Fi / VPN 연결',
     description: '사내 Wi-Fi에 접속하고 VPN을 설치하여 정상 연결을 확인하세요.',
     rewardPoints: 2,
-    status: 'locked',
+    status: 'available',
   },
   {
     id: 'day-one-team-intro',
@@ -165,7 +165,7 @@ export const initialQuests: Quest[] = [
     title: '팀원 인사',
     description: '소속 팀원 전원에게 인사하고 자기소개를 완료하세요.',
     rewardPoints: 2,
-    status: 'locked',
+    status: 'available',
   },
   {
     id: 'day-one-office-tour',
@@ -173,7 +173,7 @@ export const initialQuests: Quest[] = [
     title: '사무실 투어',
     description: '회의실, 휴게실, 식당, 비상구 위치를 파악하고 투어를 완료하세요.',
     rewardPoints: 2,
-    status: 'locked',
+    status: 'available',
   },
   {
     id: 'day-one-buddy',
@@ -181,7 +181,7 @@ export const initialQuests: Quest[] = [
     title: '멘토/버디 확인',
     description: '배정된 멘토 또는 버디를 확인하고 첫 미팅을 진행하세요.',
     rewardPoints: 1,
-    status: 'locked',
+    status: 'available',
   },
 
   // ── Stage 3: Mandatory Training (locked) ── 합계 14P ───────────────────────
@@ -191,7 +191,7 @@ export const initialQuests: Quest[] = [
     title: '정보보안 교육',
     description: '정보보안 온라인 교육을 이수하고 수료증을 제출하세요.',
     rewardPoints: 3,
-    status: 'locked',
+    status: 'available',
   },
   {
     id: 'training-sexual-harassment',
@@ -199,7 +199,7 @@ export const initialQuests: Quest[] = [
     title: '성희롱 예방 교육',
     description: '성희롱 예방 교육을 이수하고 수료증을 제출하세요.',
     rewardPoints: 2,
-    status: 'locked',
+    status: 'available',
   },
   {
     id: 'training-workplace-bullying',
@@ -207,7 +207,7 @@ export const initialQuests: Quest[] = [
     title: '직장 내 괴롭힘 예방 교육',
     description: '직장 내 괴롭힘 예방 교육을 이수하고 수료증을 제출하세요.',
     rewardPoints: 2,
-    status: 'locked',
+    status: 'available',
   },
   {
     id: 'training-safety-health',
@@ -215,7 +215,7 @@ export const initialQuests: Quest[] = [
     title: '안전보건 교육',
     description: '산업안전보건 교육을 이수하고 수료증을 제출하세요.',
     rewardPoints: 2,
-    status: 'locked',
+    status: 'available',
   },
   {
     id: 'training-privacy',
@@ -223,7 +223,7 @@ export const initialQuests: Quest[] = [
     title: '개인정보 보호 교육',
     description: '개인정보 보호 온라인 교육을 이수하고 수료증을 제출하세요.',
     rewardPoints: 2,
-    status: 'locked',
+    status: 'available',
   },
   {
     id: 'training-systems',
@@ -231,7 +231,7 @@ export const initialQuests: Quest[] = [
     title: '사내 시스템 교육',
     description: '그룹웨어, 근태관리, 경비처리 시스템 사용법 교육을 이수하세요.',
     rewardPoints: 3,
-    status: 'locked',
+    status: 'available',
   },
 
   // ── Stage 4: Know Your Company (locked) ── 합계 5P (추가 예정) ─────────────
@@ -241,7 +241,7 @@ export const initialQuests: Quest[] = [
     title: '회사 비전/미션 퀴즈',
     description: '회사 비전, 미션, 핵심 가치를 학습하고 퀴즈를 완료하세요.',
     rewardPoints: 3,
-    status: 'locked',
+    status: 'available',
   },
   {
     id: 'culture-org-chart',
@@ -249,7 +249,7 @@ export const initialQuests: Quest[] = [
     title: '조직도 파악',
     description: '사내 포탈에서 전체 조직도를 확인하고 주요 부서 역할을 파악하세요.',
     rewardPoints: 2,
-    status: 'locked',
+    status: 'available',
   },
 ]
 // 기존 available 합계: 30P

@@ -9,13 +9,13 @@ import CategoryTabs from '@/components/CategoryTabs'
 import QuestCard from '@/components/QuestCard'
 
 const ALL_CATEGORIES: QuestCategory[] = [
-  'hr-beginner',
-  'role-specific',
-  'daily-monthly',
   'pre-boarding',
   'day-one',
   'mandatory-training',
   'company-culture',
+  'hr-beginner',
+  'role-specific',
+  'daily-monthly',
 ]
 
 function QuestListContent() {
