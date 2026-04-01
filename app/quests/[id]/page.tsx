@@ -50,12 +50,21 @@ export default function QuestDetailPage({ params }: { params: { id: string } }) 
 
   // 잠긴 퀘스트
   if (quest.status === 'locked') {
+    const unlockHint: Record<string, string> = {
+      'day-one': '첫 출근 당일에 열립니다',
+      'mandatory-training': '입사 후 1주차에 열립니다',
+      'company-culture': '필수 교육 완료 후 열립니다',
+    }
+    const hint = unlockHint[quest.category] ?? '조건을 달성하면 열립니다'
     return (
       <div className="flex flex-col items-center justify-center gap-6 pt-20 px-6 text-center">
         <span className="text-6xl">🔒</span>
         <div>
           <h2 className="text-xl font-bold text-gray-800">아직 잠긴 퀘스트예요</h2>
-          <p className="mt-1 text-sm text-gray-400">{quest.title}</p>
+          <p className="mt-1 text-sm text-gray-500">{quest.title}</p>
+          <p className="mt-2 rounded-full bg-amber-50 px-4 py-1 text-xs font-medium text-amber-600 inline-block">
+            🕐 {hint}
+          </p>
         </div>
         <button
           onClick={() => router.push('/quests')}
@@ -73,8 +82,12 @@ export default function QuestDetailPage({ params }: { params: { id: string } }) 
       <div className="flex flex-col items-center justify-center gap-6 pt-20 px-6 text-center">
         <span className="text-6xl">✅</span>
         <div>
-          <h2 className="text-xl font-bold text-gray-800">이미 완료한 퀘스트입니다</h2>
+          <h2 className="text-xl font-bold text-gray-800">완료한 퀘스트예요!</h2>
           <p className="mt-1 text-sm text-gray-400">{quest.title}</p>
+        </div>
+        <div className="flex items-center gap-2 rounded-full bg-green-50 px-5 py-2">
+          <span className="text-xl font-extrabold text-green-600">+{quest.rewardPoints}P</span>
+          <span className="text-sm text-green-400">획득 완료</span>
         </div>
         <button
           onClick={() => router.push('/')}
@@ -97,7 +110,7 @@ export default function QuestDetailPage({ params }: { params: { id: string } }) 
     }, 2000)
   }
 
-  // 일반 미션 확인 핸들러: 로딩(2초) → 확인됨(1초) → 완료 모달
+  // 일반 미션 확인 핸들러: 로딩(1초) → 확인됨(1초) → 완료 모달
   const handleMissionConfirm = () => {
     if (isMissionLoading || isMissionConfirmed) return
     setIsMissionLoading(true)
@@ -109,7 +122,7 @@ export default function QuestDetailPage({ params }: { params: { id: string } }) 
         setIsMissionConfirmed(false)
         setShowModal(true)
       }, 1000)
-    }, 2000)
+    }, 1000)
   }
 
   const handleConfirm = () => {
@@ -122,19 +135,19 @@ export default function QuestDetailPage({ params }: { params: { id: string } }) 
   return (
     <>
       {/* 헤더 */}
-      <div className={`flex items-center gap-3 px-4 pt-4 pb-2 ${isQrQuest ? 'bg-black' : 'bg-white border-b border-gray-100'}`}>
+      <div className="flex items-center gap-3 px-4 pt-4 pb-2 bg-white border-b border-gray-100">
         <button
           onClick={() => router.back()}
-          className={`p-1 ${isQrQuest ? 'text-white' : 'text-gray-600'}`}
+          className="p-1 text-gray-600"
           aria-label="뒤로가기"
         >
           <ArrowLeft size={22} />
         </button>
         <div className="min-w-0">
-          <h1 className={`truncate font-bold ${isQrQuest ? 'text-white' : 'text-gray-800'}`}>
+          <h1 className="truncate font-bold text-gray-800">
             {quest.title}
           </h1>
-          <p className={`text-xs ${isQrQuest ? 'text-gray-400' : 'text-blue-500'}`}>
+          <p className="text-xs text-blue-500">
             +{quest.rewardPoints}P 획득
           </p>
         </div>

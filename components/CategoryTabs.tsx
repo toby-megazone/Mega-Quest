@@ -28,25 +28,29 @@ export default function CategoryTabs({ activeCategory }: CategoryTabsProps) {
   }
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="퀘스트 카테고리">
-      {TABS.map(({ value, label }) => {
-        const isActive = activeCategory === value
-        return (
-          <button
-            key={value}
-            role="tab"
-            aria-selected={isActive}
-            onClick={() => handleSelect(value)}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-              isActive
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-white text-gray-500 border border-gray-200 hover:border-blue-300'
-            }`}
-          >
-            {label}
-          </button>
-        )
-      })}
+    <div className="relative">
+      <div className="flex gap-2 overflow-x-auto pb-1 pr-8" role="tablist" aria-label="퀘스트 카테고리">
+        {TABS.map(({ value, label }) => {
+          const isActive = activeCategory === value
+          return (
+            <button
+              key={value}
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => handleSelect(value)}
+              className={`shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+                isActive
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-white text-gray-500 border border-gray-200 hover:border-blue-300'
+              }`}
+            >
+              {label}
+            </button>
+          )
+        })}
+      </div>
+      {/* 우측 스크롤 인디케이터 */}
+      <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-gray-50 to-transparent" />
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import Modal from '@/components/ui/Modal'
+import { useRouter } from 'next/navigation'
 import type { Quest } from '@/lib/types'
 
 interface CompletionModalProps {
@@ -8,6 +9,7 @@ interface CompletionModalProps {
 }
 
 export default function CompletionModal({ isOpen, quest, onConfirm }: CompletionModalProps) {
+  const router = useRouter()
   if (!quest) return null
 
   return (
@@ -24,13 +26,22 @@ export default function CompletionModal({ isOpen, quest, onConfirm }: Completion
           <span className="text-2xl font-extrabold text-blue-600">+{quest.rewardPoints}P</span>
           <span className="text-sm text-blue-400">획득</span>
         </div>
-        <button
-          onClick={onConfirm}
-          className="mt-2 w-full rounded-xl bg-blue-600 py-3 font-bold text-white active:bg-blue-700 transition-colors"
-          aria-label="확인하고 홈으로 이동"
-        >
-          확인
-        </button>
+        <div className="flex w-full flex-col gap-2 mt-2">
+          <button
+            onClick={() => { router.push('/quests') }}
+            className="w-full rounded-xl bg-blue-600 py-3 font-bold text-white active:bg-blue-700 transition-colors"
+            aria-label="다음 퀘스트 하기"
+          >
+            다음 퀘스트 하기
+          </button>
+          <button
+            onClick={onConfirm}
+            className="w-full rounded-xl bg-gray-100 py-3 font-medium text-gray-600 active:bg-gray-200 transition-colors"
+            aria-label="홈으로 이동"
+          >
+            홈으로
+          </button>
+        </div>
       </div>
     </Modal>
   )
