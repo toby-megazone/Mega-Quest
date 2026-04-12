@@ -24,6 +24,7 @@ export interface Quest {
   description: string
   rewardPoints: number
   status: QuestStatus
+  helpUrl?: string
 }
 
 export interface PetStageConfig {

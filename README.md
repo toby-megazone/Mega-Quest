@@ -61,7 +61,7 @@ npx tsc --noEmit
 | 1 | `/onboarding` | 앱 소개 인트로 화면 |
 | 2 | `/login` | Google 로그인 UI (Mock, 실제 인증 없음) |
 | 3 | `/` | 홈 대시보드 — 트리니티 펫, 포인트 현황, 오늘의 퀘스트 |
-| 4 | `/quests` | 퀘스트 로드맵 — 7개 카테고리 탭, 28개 미션 |
+| 4 | `/quests` | 퀘스트 로드맵 — 7개 카테고리 탭, 35개 미션 |
 | 5 | `/quests/[id]` | 미션 수행 — QR 스캔 또는 달성 확인 플로우 |
 
 ---
@@ -103,7 +103,7 @@ Mega-Quest/
 │   ├── DailyQuestShortcut.tsx  # 일일 퀘스트 바로가기 (완료 시 상태 변경)
 │   └── PointsProgressBar.tsx
 ├── store/
-│   └── gameStore.ts         # Zustand store — version: 4
+│   └── gameStore.ts         # Zustand store — version: 5
 ├── lib/
 │   ├── types.ts             # User, Quest, PetStageConfig, QuestCategory (7개)
 │   ├── mockData.ts          # Mock 데이터 — 퀘스트 28개, 전체 available
@@ -126,7 +126,7 @@ Mega-Quest/
 
 ---
 
-## 퀘스트 목록 (총 28개, 전체 available)
+## 퀘스트 목록 (총 35개, 전체 available)
 
 탭 순서는 실제 온보딩 여정 순서를 따릅니다.
 
@@ -140,7 +140,7 @@ Mega-Quest/
 | 프로필 사진 등록 | 1P |
 | 자기소개서 작성 | 2P |
 
-### 2. 첫 출근 `day-one` — 6개 (12P)
+### 2. 첫 출근 `day-one` — 11개 (22P)
 
 | 퀘스트 | 포인트 |
 |---|---|
@@ -149,7 +149,12 @@ Mega-Quest/
 | Wi-Fi / VPN 연결 | 2P |
 | 팀원 인사 | 2P |
 | 사무실 투어 | 2P |
-| 멘토/버디 확인 | 1P |
+| 버디(Buddy) 찾아가기 | 2P |
+| 메가존 PoPs 로그인 | 2P |
+| 메가원 Ask 접속 | 2P |
+| 메가원 그룹웨어 접속 | 2P |
+| 이메일 서명 설정 | 2P |
+| 프린터/스캐너 설정 | 1P |
 
 ### 3. 필수 교육 `mandatory-training` — 6개 (14P)
 
@@ -169,13 +174,15 @@ Mega-Quest/
 | 회사 비전/미션 퀴즈 | 3P |
 | 조직도 파악 | 2P |
 
-### 5. HR 초보자 `hr-beginner` — 3개 (8P)
+### 5. HR 초보자 `hr-beginner` — 5개 (13P)
 
 | 퀘스트 | 포인트 |
 |---|---|
 | 인사제도 확인 | 3P |
 | 오피스 투어 | 3P |
 | 프로필 설정 | 2P |
+| 명함 신청 | 2P |
+| 인사카드 작성/제출 | 3P |
 
 ### 6. 직군별 전직 `role-specific` — 3개 (13P)
 
@@ -193,7 +200,7 @@ Mega-Quest/
 | 업무 메일 확인 | 2P |
 | 전자결재 확인 | 2P |
 
-> 전체 완료 시 최대 **72P** 획득 → Stage 3 달성 가능
+> 전체 완료 시 최대 **87P** 획득 → Stage 3 달성 가능
 
 ---
 
@@ -218,7 +225,7 @@ Mega-Quest/
 
 ## 주요 개발 메모
 
-**Zustand persist `version: 4`**  
+**Zustand persist `version: 5`**  
 `mockData.ts`를 변경할 때마다 버전을 +1 올리면 사용자 localStorage가 자동 초기화됩니다.
 
 **`useSearchParams` Suspense 필수**  

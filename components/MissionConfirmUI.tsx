@@ -25,6 +25,16 @@ export default function MissionConfirmUI({
         </div>
         <h2 className="text-lg font-bold text-gray-800">{quest.title}</h2>
         <p className="text-sm text-gray-400">{quest.description}</p>
+        {quest.helpUrl && (
+          <a
+            href={quest.helpUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-medium text-blue-500 underline underline-offset-2"
+          >
+            가이드 보기 →
+          </a>
+        )}
         <span className="rounded-full bg-blue-50 px-4 py-1 text-sm font-semibold text-blue-600">
           +{quest.rewardPoints}P 획득 예정
         </span>
