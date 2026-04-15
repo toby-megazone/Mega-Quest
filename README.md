@@ -111,7 +111,7 @@ Mega-Quest/
 │   ├── QuickLinks.tsx       # 홈 바로가기 링크 (Server Component)
 │   └── ShopItemCard.tsx     # 상점 상품 카드 (구매 확인 모달 포함)
 ├── store/
-│   └── gameStore.ts         # Zustand store — version: 6
+│   └── gameStore.ts         # Zustand store — version: 7
 ├── lib/
 │   ├── types.ts             # User, Quest, ShopItem, QuickLink, PetStageConfig
 │   ├── mockData.ts          # 퀘스트 35개, 전체 available
@@ -128,9 +128,9 @@ Mega-Quest/
 
 | 단계 | 이모지 | 이름 | 포인트 조건 |
 |---|---|---|---|
-| Stage 1 | 🥚 | 알 (Egg) | 0 ~ 9P |
-| Stage 2 | 🐣 | 아기 트리니티 | 10 ~ 14P |
-| Stage 3 | ✨ | 메가 트리니티 | 15P 이상 |
+| Stage 1 | 🥚 | 알 (Egg) | 0 ~ 4P |
+| Stage 2 | 🐣 | 아기 트리니티 | 5 ~ 19P |
+| Stage 3 | ✨ | 메가 트리니티 | 20P 이상 |
 
 `petStage`는 파생값입니다. `completeQuest()` 호출 시 `getPetStage(newPoints)`로 자동 계산되며 별도 저장하지 않습니다.
 
@@ -249,14 +249,14 @@ Mega-Quest/
 | 미션 로딩 시간 | 2초 → 1초로 단축 |
 | 헤더 통일 | QR/일반 미션 모두 흰색 헤더 |
 | 펫 이미지 | 404 제거 — 이모지(🥚🐣✨)만 사용 |
-| 바로가기 링크 | 홈 화면에 사내 서비스 5개 링크 추가 (Megaone, Connect Place 등) |
+| 바로가기 링크 | 홈 화면에 사내 서비스 5개 링크 추가 (Megaone, Connect Place 등) — 현재 탭에서 열림 |
 | 포인트 상점 | 기프트콘 교환 상점 추가 — 전체 상품 / 구매 내역 탭 |
 
 ---
 
 ## 주요 개발 메모
 
-**Zustand persist `version: 6`**  
+**Zustand persist `version: 7`**  
 `mockData.ts` 또는 store 구조를 변경할 때마다 버전을 +1 올리면 사용자 localStorage가 자동 초기화됩니다.
 
 **`useSearchParams` Suspense 필수**  
