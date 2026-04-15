@@ -34,7 +34,7 @@ Actions:
 
 `petStage` is **derived**, not stored independently. `completeQuest(questId)` recalculates it via `getPetStage(newPoints)` from `lib/utils.ts` every time a quest is completed.
 
-**Zustand store version:** currently `6` in `gameStore.ts`. Bump this whenever the store shape or `mockData.ts` changes to wipe user `localStorage` automatically.
+**Zustand store version:** currently `7` in `gameStore.ts`. Bump this whenever the store shape or `mockData.ts` changes to wipe user `localStorage` automatically.
 
 ### Page Flow
 
@@ -62,7 +62,7 @@ Shop items are defined in `lib/shopItems.ts` as `ShopItem[]`. Each item has `id`
 
 ### Quick Links — `components/QuickLinks.tsx`
 
-Static Server Component (no `'use client'`). Link data lives in `lib/quickLinks.ts` as `QuickLink[]`. Rendered on the home dashboard between the points progress bar and the daily quest shortcut. All links open `target="_blank" rel="noopener noreferrer"`.
+Static Server Component (no `'use client'`). Link data lives in `lib/quickLinks.ts` as `QuickLink[]`. Rendered on the home dashboard between the points progress bar and the daily quest shortcut. All links open in the current tab (no `target="_blank"`).
 
 ### Quest Data Shape
 
