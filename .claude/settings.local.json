@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npx tsc:*)",
-      "Bash(grep -oP '#[0-9a-fA-F]{3,6}')"
+      "Bash(grep -oP '#[0-9a-fA-F]{3,6}')",
+      "mcp__drawio__open_drawio_xml",
+      "Bash(python3:*)"
     ]
   }
 }
