@@ -41,7 +41,7 @@ export const initialQuests: Quest[] = [
     rewardPoints: 2,
     status: 'available',
   },
-  // hr-beginner (available) — 3+3+2 = 8P
+  // hr-beginner (available) — 3+3+2+2+3 = 13P (5개)
   {
     id: 'hr-policy',
     category: 'hr-beginner',
@@ -64,6 +64,22 @@ export const initialQuests: Quest[] = [
     title: '프로필 설정',
     description: '사내 시스템에 프로필 사진과 기본 정보를 등록하세요.',
     rewardPoints: 2,
+    status: 'available',
+  },
+  {
+    id: 'hr-beginner-business-card',
+    category: 'hr-beginner',
+    title: '명함 신청',
+    description: '그룹웨어 "명함신청서" 양식에 영문명, 연락처, 명함신청사유를 작성해 기안하세요. 직급 기재가 필요한 경우 "명함신청서(외부용)"을 사용하세요.',
+    rewardPoints: 2,
+    status: 'available',
+  },
+  {
+    id: 'hr-beginner-employee-card',
+    category: 'hr-beginner',
+    title: '인사카드 작성/제출',
+    description: '인사팀이 메일로 안내한 구글 스프레드시트 인사카드 양식을 작성하고, 소속 리더와 인사팀에 편집자 권한으로 공유하세요.',
+    rewardPoints: 3,
     status: 'available',
   },
   // role-specific (locked) — 5+5+3 = 13P
@@ -134,7 +150,7 @@ export const initialQuests: Quest[] = [
     status: 'available',
   },
 
-  // ── Stage 2: Day 1 (locked) ── 합계 12P ────────────────────────────────────
+  // ── Stage 2: Day 1 ── 합계 22P (11개) ─────────────────────────────────────
   {
     id: 'day-one-id-card',
     category: 'day-one',
@@ -147,7 +163,7 @@ export const initialQuests: Quest[] = [
     id: 'day-one-workstation',
     category: 'day-one',
     title: '장비 세팅',
-    description: '배정된 자리에서 노트북, 모니터 등 장비를 수령하고 초기 세팅을 완료하세요.',
+    description: '메가존빌딩 B1 IT Helpdesk에서 노트북을 수령하고(부서 사전 신청 시 모니터 등 추가 장비 포함), 배정된 자리에서 초기 세팅을 완료하세요.',
     rewardPoints: 3,
     status: 'available',
   },
@@ -178,8 +194,49 @@ export const initialQuests: Quest[] = [
   {
     id: 'day-one-buddy',
     category: 'day-one',
-    title: '멘토/버디 확인',
-    description: '배정된 멘토 또는 버디를 확인하고 첫 미팅을 진행하세요.',
+    title: '버디(Buddy) 찾아가기',
+    description: '입사 전 지정된 버디를 첫날 OJT 후 부서에서 확인하고, 온보딩 질문을 정리해 첫 버디 미팅을 진행하세요. (신규 입사자당 30만 원 버디 활동비 지원)',
+    rewardPoints: 2,
+    status: 'available',
+  },
+  {
+    id: 'day-one-pops-login',
+    category: 'day-one',
+    title: '메가존 PoPs 로그인',
+    description: '부여된 임직원 Google 계정으로 Megazone PoPs(start.megazone.com)에 로그인하여 메가존 얼라이언스 조직 접근을 확인하세요.',
+    rewardPoints: 2,
+    status: 'available',
+  },
+  {
+    id: 'day-one-megaone-ask',
+    category: 'day-one',
+    title: '메가원 Ask 접속',
+    description: '메가원 Ask에 접속해 문의/업무 신청 채널을 확인하세요. (승인이 필요한 전자결재는 그룹웨어에서 처리)',
+    rewardPoints: 2,
+    status: 'available',
+  },
+  {
+    id: 'day-one-megaone-groupware',
+    category: 'day-one',
+    title: '메가원 그룹웨어 접속',
+    description: '그룹웨어(gw.megaone.com)에 접속해 조직도, 게시판, 전자결재, 휴가·경비 신청 메뉴를 확인하세요.',
+    rewardPoints: 2,
+    status: 'available',
+  },
+  {
+    id: 'day-one-email-signature',
+    category: 'day-one',
+    title: '이메일 서명 설정',
+    description: 'mzcloud_signature HTML 파일을 크롬에서 다운로드한 후 전체 선택(Ctrl+A) → 복사(Ctrl+C) → Gmail 설정 > 기본 설정 > 서명란에 붙여넣기(Ctrl+V)하여 서명을 등록하세요.',
+    rewardPoints: 2,
+    status: 'available',
+    helpUrl: 'https://help.megaone.com/hc/ko/articles/10838538984857-6-%EC%9D%B4%EB%A9%94%EC%9D%BC-%EC%84%9C%EB%AA%85-%EC%84%A4%EC%A0%95%ED%95%98%EA%B8%B0',
+  },
+  {
+    id: 'day-one-printer-setup',
+    category: 'day-one',
+    title: '프린터/스캐너 설정',
+    description: '그룹웨어 "총무업무 게시판"의 프린트 설치 가이드를 따라 사내 프린터/스캐너를 설정하세요.',
     rewardPoints: 1,
     status: 'available',
   },
@@ -252,6 +309,7 @@ export const initialQuests: Quest[] = [
     status: 'available',
   },
 ]
-// 기존 available 합계: 30P
-// Stage1 pre-boarding available: 11P
-// Stage2 day-one locked: 12P | Stage3 mandatory-training locked: 14P | Stage4 company-culture locked: 5P
+// 전체 합계: 87P (35개)
+// pre-boarding: 11P (5개)
+// day-one: 22P (11개) | mandatory-training: 14P (6개) | company-culture: 5P (2개)
+// hr-beginner: 13P (5개) | role-specific: 13P (3개) | daily-monthly: 9P (3개)

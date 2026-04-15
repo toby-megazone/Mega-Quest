@@ -24,6 +24,24 @@ export interface Quest {
   description: string
   rewardPoints: number
   status: QuestStatus
+  helpUrl?: string
+}
+
+export interface ShopItem {
+  id: string
+  name: string
+  brand: string
+  description: string
+  pointCost: number
+  emoji: string
+  category: 'cafe' | 'food' | 'convenience' | 'culture' | 'etc'
+}
+
+export interface QuickLink {
+  id: string
+  label: string
+  url: string
+  emoji: string
 }
 
 export interface PetStageConfig {
